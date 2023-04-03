@@ -8,9 +8,9 @@
  * output: out.txt
  *
  * input file format:
- * <encryption flag>
+ * <faulty bit> <round number> <operation> <row offset1> <byte offset1> <bit offset1> <row offset2> <byte offset2> <bit offset2>
  * <plain text>
- * <cipher text> 
+ * <cipher text>
  */
 
 `include "constants.v"
@@ -20,6 +20,13 @@
 module aes_ced_tb();
 
     integer iterator = 0;
+
+    integer fault_flag = 0;
+    integer fault_round = 0;
+    integer fault_operation = 0;
+    integer fault_row[1:0];
+    integer fault_col[1:0];
+    integer fault_bit[1:0];
 
     reg[`BYTE] buffer;
     integer in_file;
@@ -45,8 +52,11 @@ module aes_ced_tb();
         in_file = $fopen("in.txt", "r");
         out_file = $fopen("out.txt", "w");
 
+        // get fault injector parameters
+        $fscanf(in_file, "%d %d %d %d %d %d %d %d %d\n", fault_flag, fault_round, fault_operation,
+            fault_row[0], fault_col[0], fault_bit[0], fault_row[1], fault_col[1], fault_bit[1]);
+
         // get the key
-        // buffer[`BYTE] = $fgetc(in_file);
         for (integer i = 0; `BLOCK_NIBBLE_SIZE > i; i++) begin
             buffer[`BYTE] = $fgetc(in_file);
             key_str[i] = buffer[`BYTE];
