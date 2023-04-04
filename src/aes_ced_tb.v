@@ -300,6 +300,22 @@ module aes_ced_tb();
 
             end
 
+            // inject fault(s) into output of column mix
+            if (1 == fault_flag && fault_round == rnd && `FAULT_COL_MIX == fault_operation) begin
+
+                plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
+                $display("Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
+ 
+                // second fault
+                if (fault_row[0] != fault_row[1] 
+                    && fault_col[0] != fault_col[1]
+                    && fault_bit[0] != fault_bit[1]) begin
+
+                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
+                    $display("Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                end
+            end
+
             // print out the result of the column mix
             $write("column mix: ");
             for (integer i = 0; `COL_SIZE > i; i++) begin
