@@ -200,6 +200,7 @@ module aes_ced_tb();
                 end
             end
 
+            // print out the result of the sbox conversion
             $write("sbox: ");
             for (integer i = 0; `COL_SIZE > i; i++) begin
                 for (integer j = 0; `ROW_SIZE > j; j++) begin
@@ -219,6 +220,23 @@ module aes_ced_tb();
                 end
             end
 
+            // inject fault(s) into output of shift row
+            if (1 == fault_flag && fault_round == rnd && `FAULT_ROW_SWITCH == fault_operation) begin
+
+                plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
+                $display("Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
+ 
+                // second fault
+                if (fault_row[0] != fault_row[1] 
+                    && fault_col[0] != fault_col[1]
+                    && fault_bit[0] != fault_bit[1]) begin
+
+                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
+                    $display("Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                end
+            end
+
+            // print out the result of the row shift
             $write("rowshift: ");
             for (integer i = 0; `COL_SIZE > i; i++) begin
                 for (integer j = 0; `ROW_SIZE > j; j++) begin
@@ -266,6 +284,7 @@ module aes_ced_tb();
 
             end
 
+            // print out the result of the column mix
             $write("column mix: ");
             for (integer i = 0; `COL_SIZE > i; i++) begin
                 for (integer j = 0; `ROW_SIZE > j; j++) begin
@@ -274,6 +293,7 @@ module aes_ced_tb();
             end
             $write("\n");
 
+            // print out the round key used for the key xor
             $write("round key: ");
             for (integer i = 0; `COL_SIZE > i; i++) begin
                 for (integer j = 0; `ROW_SIZE > j; j++) begin
@@ -293,7 +313,7 @@ module aes_ced_tb();
             if (1 == fault_flag && fault_round == rnd && `FAULT_KEY_XOR == fault_operation) begin
 
                 plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
-                $display("Fault Injected at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
+                $display("Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
@@ -301,10 +321,11 @@ module aes_ced_tb();
                     && fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
-                    $display("Fault Injected at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                    $display("Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
 
+            // print out result of key xor
             $write("key xor: ");
             for (integer i = 0; `COL_SIZE > i; i++) begin
                 for (integer j = 0; `ROW_SIZE > j; j++) begin
