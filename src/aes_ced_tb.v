@@ -53,7 +53,7 @@ module aes_ced_tb();
         out_file = $fopen("out.txt", "w");
 
         // get fault injector parameters
-        $fscanf(in_file, "%d %d %d %d %d %d %d %d %d\n", fault_flag, fault_round, fault_operation,
+        buffer = $fscanf(in_file, "%d %d %d %d %d %d %d %d %d\n", fault_flag, fault_round, fault_operation,
             fault_row[0], fault_col[0], fault_bit[0], fault_row[1], fault_col[1], fault_bit[1]);
 
         // get the key
@@ -191,7 +191,7 @@ module aes_ced_tb();
 
         for (integer rnd = 1; `NUM_ROUNDS - 1 > rnd; rnd++) begin
 
-            $display("Round %d", rnd);
+            $display("Round %0d", rnd);
 
             // perform sbox conversion
             for (integer i = 0; `ROW_SIZE > i; i++) begin
@@ -274,13 +274,6 @@ module aes_ced_tb();
             end
             $write("\n");
 
-            // perform AES key XOR
-            for (integer i = 0; `ROW_SIZE > i; i++) begin
-                for (integer j = 0; `COL_SIZE > j; j++) begin
-                    plaintext[i][j] = byte_xor_byte(plaintext[i][j], key[rnd][i][j]);
-                end
-            end
-
             $write("round key: ");
             for (integer i = 0; `COL_SIZE > i; i++) begin
                 for (integer j = 0; `ROW_SIZE > j; j++) begin
@@ -288,6 +281,29 @@ module aes_ced_tb();
                 end
             end
             $write("\n");
+
+            // perform AES key XOR
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    plaintext[i][j] = byte_xor_byte(plaintext[i][j], key[rnd][i][j]);
+                end
+            end
+
+            // inject fault(s) into output of key xor
+            if (1 == fault_flag && fault_round == rnd && `FAULT_KEY_XOR == fault_operation) begin
+
+                plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
+                $display("Fault Injected at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
+ 
+                // second fault
+                if (fault_row[0] != fault_row[1] 
+                    && fault_col[0] != fault_col[1]
+                    && fault_bit[0] != fault_bit[1]) begin
+
+                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
+                    $display("Fault Injected at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                end
+            end
 
             $write("key xor: ");
             for (integer i = 0; `COL_SIZE > i; i++) begin
@@ -342,6 +358,7 @@ module aes_ced_tb();
                 plaintext[i][j] = byte_xor_byte(plaintext[i][j], key[10][i][j]);
             end
         end
+
 
         $write("round key: ");
         for (integer i = 0; `COL_SIZE > i; i++) begin
