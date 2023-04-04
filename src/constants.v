@@ -28,4 +28,10 @@
 `define ROW_SIZE          4
 `define COL_SIZE          4
 
+// fault injector constants
+`define FAULT_SBOX       0
+`define FAULT_ROW_SWITCH 1
+`define FAULT_COL_MIX    2
+`define FAULT_KEY_XOR    3
+
 `endif // _CONSTANTS_V_
