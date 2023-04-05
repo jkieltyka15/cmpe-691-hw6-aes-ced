@@ -288,6 +288,14 @@ module aes_ced_tb();
             end
             $write("\n");
 
+            // predict parity of column mix
+            parity_predict = 1'h0;
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    parity_predict ^= ^plaintext[i][j];
+                end
+            end
+
             // perform AES column mix
             for (integer i = 0; `COL_SIZE > i; i++) begin
 
@@ -341,6 +349,20 @@ module aes_ced_tb();
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
                     $display("*** Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
+            end
+
+            // get parity of mix column
+            parity = 1'h0;
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    parity ^= ^plaintext[i][j];
+                end
+            end
+
+            // determine if fault present for mix column
+            if (parity_predict != parity) begin
+                fault_detected = 1'h1;
+                $display("!!! Fault detected in Mix Column");
             end
 
             // print out the result of the column mix
