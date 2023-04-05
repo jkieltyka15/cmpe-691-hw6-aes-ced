@@ -28,6 +28,11 @@ module aes_ced_tb();
     integer fault_col[1:0];
     integer fault_bit[1:0];
 
+    reg fault_detected = 1'h0;
+
+    reg parity_predict = 1'h0;
+    reg parity = 1'h0;
+
     reg[`BYTE] buffer;
     integer in_file;
     integer out_file;
@@ -204,7 +209,7 @@ module aes_ced_tb();
             if (1 == fault_flag && fault_round == rnd && `FAULT_SBOX == fault_operation) begin
 
                 plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
-                $display("Fault injected in SBox at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
+                $display("*** Fault injected in SBox at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
@@ -212,7 +217,7 @@ module aes_ced_tb();
                     && fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
-                    $display("Fault injected in Sbox at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                    $display("*** Fault injected in Sbox at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
 
@@ -225,6 +230,14 @@ module aes_ced_tb();
             end
             $write("\n");
 
+            // predict parity of row shift
+            parity_predict = 1'h0;
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    parity_predict ^= ^plaintext[i][j];
+                end
+            end
+
             // perform an AES row shift
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; j < i; j++) begin
@@ -236,11 +249,11 @@ module aes_ced_tb();
                 end
             end
 
-            // inject fault(s) into output of shift row
-            if (1 == fault_flag && fault_round == rnd && `FAULT_ROW_SWITCH == fault_operation) begin
+            // inject fault(s) into output of row shift
+            if (1 == fault_flag && fault_round == rnd && `FAULT_ROW_SHIFT == fault_operation) begin
 
                 plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
-                $display("Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
+                $display("*** Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
@@ -248,8 +261,22 @@ module aes_ced_tb();
                     && fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
-                    $display("Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                    $display("*** Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
+            end
+
+            // get parity of row shift
+            parity = 1'h0;
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    parity ^= ^plaintext[i][j];
+                end
+            end
+
+            // determine if fault present for row shift
+            if (parity_predict != parity) begin
+                fault_detected = 1'h1;
+                $display("!!! Fault detected in Row Shift");
             end
 
             // print out the result of the row shift
@@ -304,7 +331,7 @@ module aes_ced_tb();
             if (1 == fault_flag && fault_round == rnd && `FAULT_COL_MIX == fault_operation) begin
 
                 plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
-                $display("Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
+                $display("*** Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
@@ -312,7 +339,7 @@ module aes_ced_tb();
                     && fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
-                    $display("Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                    $display("*** Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
 
@@ -345,7 +372,7 @@ module aes_ced_tb();
             if (1 == fault_flag && fault_round == rnd && `FAULT_KEY_XOR == fault_operation) begin
 
                 plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
-                $display("Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
+                $display("*** Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
@@ -353,7 +380,7 @@ module aes_ced_tb();
                     && fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
-                    $display("Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                    $display("*** Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
 
@@ -412,7 +439,6 @@ module aes_ced_tb();
             end
         end
 
-
         $write("round key: ");
         for (integer i = 0; `COL_SIZE > i; i++) begin
             for (integer j = 0; `ROW_SIZE > j; j++) begin
@@ -431,12 +457,15 @@ module aes_ced_tb();
 
 //****************************************************************************************** AES END
 
-        // write result to output file
+        // write cipher text to output file
         for (integer i = 0; `COL_SIZE > i; i++) begin
             for (integer j = 0; `ROW_SIZE > j; j++) begin
                  $fwrite(out_file, "%x", plaintext[j][i][7:0]);
             end
         end
+
+        // write fault result to ouput file
+        $fwrite(out_file, "        %0d", fault_detected);
 
         // close in and out text files
         $fclose(in_file);
