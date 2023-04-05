@@ -213,8 +213,8 @@ module aes_ced_tb();
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
-                    && fault_col[0] != fault_col[1]
-                    && fault_bit[0] != fault_bit[1]) begin
+                    || fault_col[0] != fault_col[1]
+                    || fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
                     $display("*** Fault injected in Sbox at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
@@ -257,8 +257,8 @@ module aes_ced_tb();
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
-                    && fault_col[0] != fault_col[1]
-                    && fault_bit[0] != fault_bit[1]) begin
+                    || fault_col[0] != fault_col[1]
+                    || fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
                     $display("*** Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
@@ -343,15 +343,15 @@ module aes_ced_tb();
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
-                    && fault_col[0] != fault_col[1]
-                    && fault_bit[0] != fault_bit[1]) begin
+                    || fault_col[0] != fault_col[1]
+                    || fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
                     $display("*** Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
 
-            // get parity of mix column
+            // get parity of column mix
             parity = 1'h0;
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; `COL_SIZE > j; j++) begin
@@ -359,7 +359,7 @@ module aes_ced_tb();
                 end
             end
 
-            // determine if fault present for mix column
+            // determine if fault present for column mix
             if (parity_predict != parity) begin
                 fault_detected = 1'h1;
                 $display("!!! Fault detected in Mix Column");
@@ -383,6 +383,14 @@ module aes_ced_tb();
             end
             $write("\n");
 
+            // predict parity of key XOR
+            parity_predict = 1'h0;
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    parity_predict ^= (^plaintext[i][j]) ^ (^key[rnd][i][j]);
+                end
+            end
+
             // perform AES key XOR
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; `COL_SIZE > j; j++) begin
@@ -398,12 +406,26 @@ module aes_ced_tb();
  
                 // second fault
                 if (fault_row[0] != fault_row[1] 
-                    && fault_col[0] != fault_col[1]
-                    && fault_bit[0] != fault_bit[1]) begin
+                    || fault_col[0] != fault_col[1]
+                    || fault_bit[0] != fault_bit[1]) begin
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
                     $display("*** Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
+            end
+
+            // get parity of key XOR
+            parity = 1'h0;
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    parity ^= ^plaintext[i][j];
+                end
+            end
+
+            // determine if fault present for key XOR
+            if (parity_predict != parity) begin
+                fault_detected = 1'h1;
+                $display("!!! Fault detected in Key XOR");
             end
 
             // print out result of key xor
