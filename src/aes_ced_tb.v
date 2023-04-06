@@ -30,8 +30,8 @@ module aes_ced_tb();
 
     reg fault_detected = 1'h0;
 
-    reg parity_predict = 1'h0;
-    reg parity = 1'h0;
+    reg parity_predict[`NIBBLE];
+    reg parity[`NIBBLE];
 
     reg[`BYTE] buffer;
     integer in_file;
@@ -238,7 +238,7 @@ module aes_ced_tb();
                         != (^round_input[i][j][`DATA_BITS_SBOX]) ^ (^plaintext[i][j][`DATA_BITS_SBOX])) begin
                         
                         fault_detected = 1'h1;
-                        $display("!!! Fault detected in SBox");
+                        $display("!!! Fault detected in SBox at [%0d][%0d]", i, j);
                     end
                 end
             end
@@ -260,10 +260,12 @@ module aes_ced_tb();
             $write("\n");
 
             // predict parity of row shift
-            parity_predict = 1'h0;
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                parity_predict[i] = 1'h0;
+            end
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; `COL_SIZE > j; j++) begin
-                    parity_predict ^= ^plaintext[i][j];
+                    parity_predict[i] ^= ^plaintext[i][j];
                 end
             end
 
@@ -295,17 +297,21 @@ module aes_ced_tb();
             end
 
             // get parity of row shift
-            parity = 1'h0;
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                parity[i] = 1'h0;
+            end
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; `COL_SIZE > j; j++) begin
-                    parity ^= ^plaintext[i][j];
+                    parity[i] ^= ^plaintext[i][j];
                 end
             end
 
             // determine if fault present for row shift
-            if (parity_predict != parity) begin
-                fault_detected = 1'h1;
-                $display("!!! Fault detected in Row Shift");
+            for (integer i = 0; `COL_SIZE > i; i++) begin
+                if (parity_predict[i] != parity[i]) begin
+                    fault_detected = 1'h1;
+                    $display("!!! Fault detected in Row Shift in row %0d", i);
+                end
             end
 
             // print out the result of the row shift
@@ -318,10 +324,12 @@ module aes_ced_tb();
             $write("\n");
 
             // predict parity of column mix
-            parity_predict = 1'h0;
-            for (integer i = 0; `ROW_SIZE > i; i++) begin
-                for (integer j = 0; `COL_SIZE > j; j++) begin
-                    parity_predict ^= ^plaintext[i][j];
+            for (integer i = 0; `COL_SIZE > i; i++) begin
+                parity_predict[i] = 1'h0;
+            end
+            for (integer j = 0; `COL_SIZE > j; j++) begin
+                for (integer i = 0; `ROW_SIZE > i; i++) begin
+                    parity_predict[j] ^= ^plaintext[i][j];
                 end
             end
 
@@ -381,17 +389,21 @@ module aes_ced_tb();
             end
 
             // get parity of column mix
-            parity = 1'h0;
-            for (integer i = 0; `ROW_SIZE > i; i++) begin
-                for (integer j = 0; `COL_SIZE > j; j++) begin
-                    parity ^= ^plaintext[i][j];
+            for (integer i = 0; `COL_SIZE > i; i++) begin
+                parity[i] = 1'h0;
+            end
+            for (integer j = 0; `COL_SIZE > j; j++) begin
+                for (integer i = 0; `ROW_SIZE > i; i++) begin
+                    parity[j] ^= ^plaintext[i][j];
                 end
             end
 
             // determine if fault present for column mix
-            if (parity_predict != parity) begin
-                fault_detected = 1'h1;
-                $display("!!! Fault detected in Column Mix");
+            for (integer i = 0; `COL_SIZE > i; i++) begin
+                if (parity_predict[i] != parity[i]) begin
+                    fault_detected = 1'h1;
+                    $display("!!! Fault detected in Column Mix in column %0d", i);
+                end
             end
 
             // print out the result of the column mix
@@ -413,10 +425,10 @@ module aes_ced_tb();
             $write("\n");
 
             // predict parity of key XOR
-            parity_predict = 1'h0;
+            parity_predict[0] = 1'h0;
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; `COL_SIZE > j; j++) begin
-                    parity_predict ^= (^plaintext[i][j]) ^ (^key[rnd][i][j]);
+                    parity_predict[0] ^= (^plaintext[i][j]) ^ (^key[rnd][i][j]);
                 end
             end
 
@@ -444,15 +456,15 @@ module aes_ced_tb();
             end
 
             // get parity of key XOR
-            parity = 1'h0;
+            parity[0] = 1'h0;
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; `COL_SIZE > j; j++) begin
-                    parity ^= ^plaintext[i][j];
+                    parity[0] ^= ^plaintext[i][j];
                 end
             end
 
             // determine if fault present for key XOR
-            if (parity_predict != parity) begin
+            if (parity_predict[0] != parity[0]) begin
                 fault_detected = 1'h1;
                 $display("!!! Fault detected in Key XOR");
             end
