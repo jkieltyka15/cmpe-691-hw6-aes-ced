@@ -36,5 +36,6 @@
 
 // parity values
 `define PARITY_BIT_SBOX 8
+`define DATA_BITS_SBOX  7:0
 
 `endif // _CONSTANTS_V_
