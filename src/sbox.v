@@ -319,4 +319,24 @@ function reg[`BYTE] sbox(input reg[`BYTE] value);
     end
 endfunction
 
+/**
+ * Performs the sbox function for AES with parity.
+ * 
+ * @param value - The value for the sbox to convert.
+ *
+ * @return The result of the sbox conversion.
+ */
+function reg[`BYTE] sbox_with_parity(input reg[`BYTE] value);
+    begin
+
+        reg[`BYTE] sbox_value;
+        
+        sbox_value = sbox(value);
+        sbox_value[`PARITY_BIT_SBOX] = (^value) ^ (^sbox_value);
+        
+        return sbox_value;
+
+    end
+endfunction
+
 `endif // _SBOX_V_

@@ -51,6 +51,9 @@ module aes_ced_tb();
     reg[`BYTE] g[`COL];
     reg[`BYTE] rc[`ROUNDS];
 
+    // used for sbox parity check
+    reg[`BYTE] round_input[`ROW][`COL];
+
     initial begin
         
         // open in and out text files
@@ -198,10 +201,17 @@ module aes_ced_tb();
 
             $display("Round %0d", rnd);
 
+            // create a copy of plaintext for round input
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    round_input[i][j] = plaintext[i][j];
+                end
+            end
+
             // perform sbox conversion
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; `COL_SIZE > j; j++) begin
-                    plaintext[i][j] = sbox(plaintext[i][j]);
+                    plaintext[i][j] = sbox_with_parity(plaintext[i][j]);
                 end
             end
 
@@ -218,6 +228,25 @@ module aes_ced_tb();
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
                     $display("*** Fault injected in Sbox at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                end
+            end
+
+            // determine if fault present in sbox conversion
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    if (plaintext[i][j][`PARITY_BIT_SBOX] 
+                        != (^round_input[i][j][`DATA_BITS_SBOX]) ^ (^plaintext[i][j][`DATA_BITS_SBOX])) begin
+                        
+                        fault_detected = 1'h1;
+                        $display("!!! Fault detected in SBox");
+                    end
+                end
+            end
+
+            // remove parity bit from sbox
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    plaintext[i][j][`PARITY_BIT_SBOX] = 1'h0;
                 end
             end
 
@@ -362,7 +391,7 @@ module aes_ced_tb();
             // determine if fault present for column mix
             if (parity_predict != parity) begin
                 fault_detected = 1'h1;
-                $display("!!! Fault detected in Mix Column");
+                $display("!!! Fault detected in Column Mix");
             end
 
             // print out the result of the column mix
