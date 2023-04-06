@@ -34,4 +34,7 @@
 `define FAULT_COL_MIX   2
 `define FAULT_KEY_XOR   3
 
+// parity values
+`define PARITY_BIT_SBOX 8
+
 `endif // _CONSTANTS_V_

@@ -201,7 +201,7 @@ module aes_ced_tb();
             // perform sbox conversion
             for (integer i = 0; `ROW_SIZE > i; i++) begin
                 for (integer j = 0; `COL_SIZE > j; j++) begin
-                    plaintext[i][j] = sbox(plaintext[i][j]);
+                    plaintext[i][j] = sbox_with_parity(plaintext[i][j]);
                 end
             end
 
@@ -218,6 +218,13 @@ module aes_ced_tb();
 
                     plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
                     $display("*** Fault injected in Sbox at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
+                end
+            end
+
+            // remove parity bit from sbox
+            for (integer i = 0; `ROW_SIZE > i; i++) begin
+                for (integer j = 0; `COL_SIZE > j; j++) begin
+                    plaintext[i][j][`PARITY_BIT_SBOX] = 1'h0;
                 end
             end
 
