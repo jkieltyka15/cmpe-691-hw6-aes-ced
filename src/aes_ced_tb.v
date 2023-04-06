@@ -1,5 +1,5 @@
 /**
- * File: aes_tb.v
+ * File: aes_ced_tb.v
  *
  * Contains the testbench for testing full AES encryption
  * with concurrent error detection (CED).
