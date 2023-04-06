@@ -218,7 +218,7 @@ module aes_ced_tb();
             // inject fault(s) into output of sbox conversion
             if (1 == fault_flag && fault_round == rnd && `FAULT_SBOX == fault_operation) begin
 
-                plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
+                plaintext[fault_row[0]][fault_col[0]] ^= (rc[8] >> fault_bit[0]);
                 $display("*** Fault injected in SBox at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
@@ -226,7 +226,7 @@ module aes_ced_tb();
                     || fault_col[0] != fault_col[1]
                     || fault_bit[0] != fault_bit[1]) begin
 
-                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
+                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[8] >> fault_bit[1]);
                     $display("*** Fault injected in Sbox at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
@@ -283,7 +283,7 @@ module aes_ced_tb();
             // inject fault(s) into output of row shift
             if (1 == fault_flag && fault_round == rnd && `FAULT_ROW_SHIFT == fault_operation) begin
 
-                plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
+                plaintext[fault_row[0]][fault_col[0]] ^= (rc[8] >> fault_bit[0]);
                 $display("*** Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
@@ -291,7 +291,7 @@ module aes_ced_tb();
                     || fault_col[0] != fault_col[1]
                     || fault_bit[0] != fault_bit[1]) begin
 
-                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
+                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[8] >> fault_bit[1]);
                     $display("*** Fault injected in Row Shift at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
@@ -375,7 +375,7 @@ module aes_ced_tb();
             // inject fault(s) into output of column mix
             if (1 == fault_flag && fault_round == rnd && `FAULT_COL_MIX == fault_operation) begin
 
-                plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
+                plaintext[fault_row[0]][fault_col[0]] ^= (rc[8] >> fault_bit[0]);
                 $display("*** Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
@@ -383,7 +383,7 @@ module aes_ced_tb();
                     || fault_col[0] != fault_col[1]
                     || fault_bit[0] != fault_bit[1]) begin
 
-                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
+                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[8] >> fault_bit[1]);
                     $display("*** Fault injected in Column Mix at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
@@ -442,7 +442,7 @@ module aes_ced_tb();
             // inject fault(s) into output of key xor
             if (1 == fault_flag && fault_round == rnd && `FAULT_KEY_XOR == fault_operation) begin
 
-                plaintext[fault_row[0]][fault_col[0]] ^= (rc[1] << fault_bit[0]);
+                plaintext[fault_row[0]][fault_col[0]] ^= (rc[8] >> fault_bit[0]);
                 $display("*** Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[0], fault_col[0], fault_bit[0]);
  
                 // second fault
@@ -450,7 +450,7 @@ module aes_ced_tb();
                     || fault_col[0] != fault_col[1]
                     || fault_bit[0] != fault_bit[1]) begin
 
-                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[1] << fault_bit[1]);
+                    plaintext[fault_row[1]][fault_col[1]] ^= (rc[8] >> fault_bit[1]);
                     $display("*** Fault injected in Key XOR at [%0d][%0d][%0d]", fault_row[1], fault_col[1], fault_bit[1]);
                 end
             end
